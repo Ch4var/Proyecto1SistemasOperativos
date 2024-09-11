@@ -65,6 +65,7 @@ void procesar_archivo(const char *input_filename, const char *output_filename) {
         if (sscanf(line, "U+%X : %d", &codepoint, &count) == 2) {
             char utf8_char[5];
             unicode_to_utf8(codepoint, utf8_char);
+            printf("utf8 char: %s", utf8_char);
             fprintf(output_file, "%s : %d\n", utf8_char, count);
         }
     }
