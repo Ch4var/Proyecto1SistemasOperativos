@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <locale.h>
 #include <time.h>
-#include "heap3.c"
+#include "heap.c"
 
 struct timespec start, end;
 long seconds, nanoseconds;
