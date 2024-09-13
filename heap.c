@@ -6,11 +6,15 @@
 
 #define MAX_TREE_HT 10000
 
+typedef struct {
+    char utf8_char[5];
+    char code[256];  // El código Huffman, suponiendo que no excede los 255 bits
+} Code;
+
 struct Node {
     uint32_t value;
     unsigned freq;
-    struct Node *left, *right;
-    char *codigo;        
+    struct Node *left, *right;      
 };
 
 struct Tree {
@@ -28,7 +32,6 @@ struct Node* newNode(uint32_t value, unsigned freq) {
     struct Node* temp = (struct Node*)malloc(sizeof(struct Node));
     if (!temp) { perror("Fallo en malloc para nodo"); exit(1); }
         temp->left = temp->right = NULL;
-        temp->codigo = NULL; // Inicializar codigo en NULL
         temp->value = value;
         temp->freq = freq;
     return temp;
@@ -125,38 +128,34 @@ struct Node* buildHuffmanTree(uint32_t value[], int freq[], int currentSize) {
     return extractMinNode(Tree);
 }
 
-char* getCode(struct Node* root, char arr[], int top, uint32_t c) {
+void getAllCodes(struct Node* root, char arr[], int top, Code *codes, int* index) {
+    // Si el nodo es nulo, no hacemos nada
     if (root == NULL) {
-        return NULL;
+        return;
     }
 
+    // Si encontramos una hoja, guardamos el carácter y su código
     if (isLeaf(root)) {
-        if (root->value == c) {
-            arr[top] = '\0';  // Terminar el código con null para indicar el final
-            return arr;  // Retornar el código encontrado
-        } else {
-            return NULL;
-        }
+        arr[top] = '\0';  // Terminar el código con null para indicar el final del string
+        char character[5];
+        unicode_to_utf8(root->value, character);  // Convertir el valor Unicode a UTF-8
+        strcpy(codes[*index].utf8_char, character);  // Guardar el valor del carácter en el array de códigos
+        strcpy(codes[*index].code, arr);    // Guardar el código Huffman generado
+        (*index)++;  // Incrementar el índice para la siguiente entrada en el array codes
+        return;
     }
 
+    // Si hay nodo a la izquierda, añadimos '0' al código y llamamos recursivamente
     if (root->left) {
-        arr[top] = '0';  // Asignar '0' para el camino a la izquierda
-        char* resultado = getCode(root->left, arr, top + 1, c);
-        if (resultado != NULL) {
-            return resultado;  // Si encontramos el código en la izquierda, lo retornamos
-        }
+        arr[top] = '0';
+        getAllCodes(root->left, arr, top + 1, codes, index);
     }
 
+    // Si hay nodo a la derecha, añadimos '1' al código y llamamos recursivamente
     if (root->right) {
-        arr[top] = '1';  // Asignar '1' para el camino a la derecha
-        char* resultado = getCode(root->right, arr, top + 1, c);
-        if (resultado != NULL) {
-            return resultado;  // Si encontramos el código en la derecha, lo retornamos
-        }
+        arr[top] = '1';
+        getAllCodes(root->right, arr, top + 1, codes, index);
     }
-
-    // Si no se encontró el código, retornar NULL
-    return NULL;
 }
 
 struct Node* HuffmanCodes(uint32_t value[], int freq[], int currentSize) {
