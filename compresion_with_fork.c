@@ -8,7 +8,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <time.h>
-#include "heap3.c"
+#include "heap.c"
 
 #define MAX_UNICODE 0x10FFFF // Definir el máximo valor Unicode
 #define BUFFER_SIZE 512  // Tamaño del buffer para escritura
@@ -21,6 +21,8 @@ struct timespec start, end;
 long seconds, nanoseconds;
 double elapsed;
 int bit_buffer, bit_count = 0;
+
+int size;
 
 void guardar_codigos(struct Node *root, char *codigo_actual, int profundidad, FILE *archivo) {
     // Caso base: si el nodo es una hoja, guardamos el valor y el código
@@ -85,7 +87,7 @@ void escribir_bits_a_buffer(char **buffer, int *buffer_size, int *buffer_capacit
     }
 }
 
-int comprimir_a_buffer(FILE *entrada, struct Node *root, char **buffer, int *caracteres_comprimidos) {
+int comprimir_a_buffer(FILE *entrada, Code *codes, char **buffer, int *caracteres_comprimidos) {
     int bit_buffer = 0, bit_count = 0;
     int buffer_size = 0;
     int buffer_capacity = INITIAL_BUFFER_SIZE;
@@ -99,9 +101,22 @@ int comprimir_a_buffer(FILE *entrada, struct Node *root, char **buffer, int *car
 
     *caracteres_comprimidos = 0;
     int ch;
+    char character[5];
     while ((ch = fgetc(entrada)) != EOF) {
-        char codigo[256];
-        char *resultado = getCode(root, codigo, 0, ch); 
+        // Convertir el carácter leído a UTF-8 (usamos un solo carácter en este caso)
+        
+        //unicode_to_utf8(ch, character);
+
+        snprintf(character, sizeof(character), "%c", ch);
+
+        char *resultado = NULL;
+        for (int i = 0; i < size; i++) {
+            if (strcmp(codes[i].utf8_char, character) == 0) {
+                resultado = codes[i].code;
+                break;  // Salir del bucle si encontramos el carácter
+            }
+        }
+
         if (resultado != NULL) {
             escribir_bits_a_buffer(buffer, &buffer_size, &buffer_capacity, resultado, &bit_count, &bit_buffer);
             (*caracteres_comprimidos)++;
@@ -144,13 +159,13 @@ void guardar_archivo_comprimido(FILE *salida, const char *nombreArchivo, char *c
     fwrite(contenido_comprimido, sizeof(char), tamano_comprimido, salida);
 }
 
-void comprimir_archivo(FILE *entrada, FILE *salida, struct Node *root, const char *nombreArchivo) {
+void comprimir_archivo(FILE *entrada, FILE *salida, Code *codes, const char *nombreArchivo) {    
     // Buffer dinámico para almacenar el archivo comprimido
     char *buffer_comprimido = NULL;
 
     // Comprimir el archivo en el buffer
     int caracteres_comprimidos;
-    int tamano_comprimido = comprimir_a_buffer(entrada, root, &buffer_comprimido, &caracteres_comprimidos);
+    int tamano_comprimido = comprimir_a_buffer(entrada, codes, &buffer_comprimido, &caracteres_comprimidos);
     
     // Guardar el nombre, tamaño comprimido, y contenido comprimido en el archivo de salida
     guardar_archivo_comprimido(salida, nombreArchivo, buffer_comprimido, tamano_comprimido, caracteres_comprimidos);
@@ -159,7 +174,15 @@ void comprimir_archivo(FILE *entrada, FILE *salida, struct Node *root, const cha
     free(buffer_comprimido);
 }
 
-void comprimir_archivos_en_rango(char *files[], int start, int end, char *carpeta, char *archivoTemporal, struct Node *root) {
+int compareCodes(const void *a, const void *b) {
+    const Code *codeA = (const Code *)a;
+    const Code *codeB = (const Code *)b;
+    
+    // Comparar las longitudes de los códigos
+    return strlen(codeA->code) - strlen(codeB->code);
+}
+
+void comprimir_archivos_en_rango(char *files[], int start, int end, char *carpeta, char *archivoTemporal, Code *codes) {    
     FILE *archivoComprimido = fopen(archivoTemporal, "wb");
     if (!archivoComprimido) {
         perror("Error al abrir archivo temporal");
@@ -172,7 +195,7 @@ void comprimir_archivos_en_rango(char *files[], int start, int end, char *carpet
 
         FILE *archivoEntrada = fopen(rutaCompleta, "rb"); // Abre en modo binario
         if (archivoEntrada) {
-            comprimir_archivo(archivoEntrada, archivoComprimido, root, files[i]);
+            comprimir_archivo(archivoEntrada, archivoComprimido, codes, files[i]);
             fclose(archivoEntrada);
         } else {
             perror("Error al abrir archivo de entrada");
@@ -188,7 +211,7 @@ int main() {
 
     setlocale(LC_ALL, ""); 
 
-    char carpeta[] = "libros4";
+    char carpeta[] = "libros";
     struct dirent *entrada;
     DIR *directorio = opendir(carpeta);
     if (!directorio) {
@@ -254,13 +277,20 @@ int main() {
         freq[i] = frecuencia_array[i].frecuencia;
     }
 
-    int size = num_caracteres;
+    size = num_caracteres;
 
     // Generar los códigos de Huffman
     struct Node *root = HuffmanCodes(arr, freq, size);  // Definir HuffmanCodes
 
     free(frecuencia_array);
     free(frecuencias);
+
+    Code *codes = malloc(num_caracteres * sizeof(Code));
+    char temparr[256];
+    int index = 0;
+    getAllCodes(root, temparr, 0, codes, &index);
+
+    qsort(codes, num_caracteres, sizeof(Code), compareCodes);
     
     // Comprimir archivos
     FILE *archivoComprimido = fopen("comprimido.bin", "wb");
@@ -291,7 +321,7 @@ int main() {
             char archivoTemporal[256];
             snprintf(archivoTemporal, sizeof(archivoTemporal), "temp_comprimido_%d.bin", i);
 
-            comprimir_archivos_en_rango(file_list, start, end, carpeta, archivoTemporal, root);
+            comprimir_archivos_en_rango(file_list, start, end, carpeta, archivoTemporal, codes);
 
             exit(0);  // Salida del proceso hijo
         }
@@ -345,5 +375,6 @@ int main() {
 
     printf("Tiempo transcurrido: %.9f segundos\n", elapsed);
 
+    free(codes);
     free(root);
 }
