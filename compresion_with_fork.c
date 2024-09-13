@@ -85,8 +85,7 @@ void escribir_bits_a_buffer(char **buffer, int *buffer_size, int *buffer_capacit
     }
 }
 
-int comprimir_a_buffer(FILE *entrada, struct Node *root, char **buffer) {
-
+int comprimir_a_buffer(FILE *entrada, struct Node *root, char **buffer, int *caracteres_comprimidos) {
     int bit_buffer = 0, bit_count = 0;
     int buffer_size = 0;
     int buffer_capacity = INITIAL_BUFFER_SIZE;
@@ -98,12 +97,14 @@ int comprimir_a_buffer(FILE *entrada, struct Node *root, char **buffer) {
         exit(EXIT_FAILURE);
     }
 
+    *caracteres_comprimidos = 0;
     int ch;
     while ((ch = fgetc(entrada)) != EOF) {
         char codigo[256];
         char *resultado = getCode(root, codigo, 0, ch); 
         if (resultado != NULL) {
             escribir_bits_a_buffer(buffer, &buffer_size, &buffer_capacity, resultado, &bit_count, &bit_buffer);
+            (*caracteres_comprimidos)++;
         }
     }
 
@@ -125,7 +126,7 @@ int comprimir_a_buffer(FILE *entrada, struct Node *root, char **buffer) {
     return buffer_size;  // Retorna el tamaño del buffer comprimido
 }
 
-void guardar_archivo_comprimido(FILE *salida, const char *nombreArchivo, char *contenido_comprimido, int tamano_comprimido) {
+void guardar_archivo_comprimido(FILE *salida, const char *nombreArchivo, char *contenido_comprimido, int tamano_comprimido, int caracteres_comprimidos) {
     // Escribir el largo del nombre del archivo
     int largo_nombre = strlen(nombreArchivo);
     fwrite(&largo_nombre, sizeof(int), 1, salida);
@@ -136,6 +137,9 @@ void guardar_archivo_comprimido(FILE *salida, const char *nombreArchivo, char *c
     // Escribir el largo del archivo comprimido
     fwrite(&tamano_comprimido, sizeof(int), 1, salida);
 
+    // Escribir la cantidad de caracteres
+    fwrite(&caracteres_comprimidos, sizeof(int), 1, salida);
+
     // Escribir el contenido del archivo comprimido
     fwrite(contenido_comprimido, sizeof(char), tamano_comprimido, salida);
 }
@@ -145,10 +149,11 @@ void comprimir_archivo(FILE *entrada, FILE *salida, struct Node *root, const cha
     char *buffer_comprimido = NULL;
 
     // Comprimir el archivo en el buffer
-    int tamano_comprimido = comprimir_a_buffer(entrada, root, &buffer_comprimido);
+    int caracteres_comprimidos;
+    int tamano_comprimido = comprimir_a_buffer(entrada, root, &buffer_comprimido, &caracteres_comprimidos);
     
     // Guardar el nombre, tamaño comprimido, y contenido comprimido en el archivo de salida
-    guardar_archivo_comprimido(salida, nombreArchivo, buffer_comprimido, tamano_comprimido);
+    guardar_archivo_comprimido(salida, nombreArchivo, buffer_comprimido, tamano_comprimido, caracteres_comprimidos);
 
     // Liberar el buffer comprimido
     free(buffer_comprimido);
@@ -183,7 +188,7 @@ int main() {
 
     setlocale(LC_ALL, ""); 
 
-    char carpeta[] = "libros";
+    char carpeta[] = "libros4";
     struct dirent *entrada;
     DIR *directorio = opendir(carpeta);
     if (!directorio) {
