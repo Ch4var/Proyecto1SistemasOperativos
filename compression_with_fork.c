@@ -300,7 +300,6 @@ int main() {
     }
 
     serializar_arbol_con_separador(root, archivoComprimido);
-    fclose(archivoComprimido);
 
     directorio = opendir(carpeta);
     if (!directorio) {
@@ -308,6 +307,8 @@ int main() {
         fclose(archivoComprimido);
         return 1;
     }
+
+    fclose(archivoComprimido);
 
     int archivos_por_proceso = file_count / MAX_PROCESSES;
     pid_t pids[MAX_PROCESSES];

@@ -18,8 +18,8 @@ struct Node {
 };
 
 struct Tree {
-    unsigned currentSize;
-    unsigned capacity;
+    int currentSize;
+    int capacity;
     struct Node** array;
 };
 
@@ -160,6 +160,5 @@ void getAllCodes(struct Node* root, char arr[], int top, Code *codes, int* index
 
 struct Node* HuffmanCodes(uint32_t value[], int freq[], int currentSize) {
     struct Node* root = buildHuffmanTree(value, freq, currentSize);
-    int arr[MAX_TREE_HT], top = 0, topArreglo = 0;
     return root; 
 }

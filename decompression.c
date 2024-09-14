@@ -68,7 +68,7 @@ void descomprimir_archivos(FILE *entrada, struct Node *root) {
 
         char nombreArchivo[1024];
         // Leer el nombre del archivo
-        if (fread(nombreArchivo, sizeof(char), largo_nombre, entrada) != largo_nombre) {
+        if ((int) fread(nombreArchivo, sizeof(char), largo_nombre, entrada) != largo_nombre) {
             break; // No se pudo leer el nombre completo
         }
         nombreArchivo[largo_nombre] = '\0';  // Terminar la cadena del nombre
@@ -101,7 +101,7 @@ void descomprimir_archivos(FILE *entrada, struct Node *root) {
         int bit_pos = 0, byte_actual = 0, bit;
         char output_buffer[1024];
         int buffer_index = 0;
-        uint32_t bytes_leidos = 0;  // Para el conteo de bytes del archivo comprimido
+        int bytes_leidos = 0;  // Para el conteo de bytes del archivo comprimido
 
         int byte_counter, caracter_counter = 0;
 
@@ -129,7 +129,7 @@ void descomprimir_archivos(FILE *entrada, struct Node *root) {
                 int utf8_len = strlen(utf8_char);  // Tamaño en bytes del carácter decodificado
 
                 // Agregar al buffer de salida
-                if (buffer_index + utf8_len < sizeof(output_buffer)) {
+                if (buffer_index + utf8_len < (int) sizeof(output_buffer)) {
                     memcpy(&output_buffer[buffer_index], utf8_char, utf8_len);
                     buffer_index += utf8_len;
                 } else {

@@ -40,7 +40,7 @@ ArchivoComprimido* obtener_punteros_archivos(FILE *archivoComprimido, int *num_a
         }
 
         // Leer el nombre del archivo
-        if (fread(nombre, sizeof(char), largo_nombre, archivoComprimido) != largo_nombre) {
+        if ((int) fread(nombre, sizeof(char), largo_nombre, archivoComprimido) != largo_nombre) {
             free(nombre);
             break;
         }
@@ -166,7 +166,7 @@ void descomprimir_archivo_hijo(const char *archivo_bin_path, ArchivoComprimido *
         int bit_pos = 0, byte_actual = 0, bit;
         char output_buffer[1024];
         int buffer_index = 0;
-        uint32_t bytes_leidos = 0;  // Para el conteo de bytes del archivo comprimido
+        int bytes_leidos = 0;  // Para el conteo de bytes del archivo comprimido
 
         int byte_counter = 0, caracter_counter = 0;
 
@@ -192,7 +192,7 @@ void descomprimir_archivo_hijo(const char *archivo_bin_path, ArchivoComprimido *
                 int utf8_len = strlen(utf8_char);  // Tamaño en bytes del carácter decodificado
 
                 // Agregar al buffer de salida
-                if (buffer_index + utf8_len < sizeof(output_buffer)) {
+                if (buffer_index + utf8_len < (int) sizeof(output_buffer)) {
                     memcpy(&output_buffer[buffer_index], utf8_char, utf8_len);
                     buffer_index += utf8_len;
                 } else {

@@ -44,7 +44,7 @@ ArchivoComprimido* obtener_punteros_archivos(FILE *archivoComprimido, int *num_a
             break;
         }
 
-        if (fread(nombre, sizeof(char), largo_nombre, archivoComprimido) != largo_nombre) {
+        if ((int) fread(nombre, sizeof(char), largo_nombre, archivoComprimido) != largo_nombre) {
             free(nombre);
             break;
         }
@@ -156,7 +156,7 @@ void *descomprimir_archivo_hilo(void *args) {
         int bit_pos = 0, byte_actual = 0, bit;
         char output_buffer[1024];
         int buffer_index = 0;
-        uint32_t bytes_leidos = 0;
+        int bytes_leidos = 0;
         int byte_counter = 0, caracter_counter = 0;
 
         while (bytes_leidos < archivo.tamano_comprimido && caracter_counter < archivo.caracteres_comprimidos) {
@@ -176,7 +176,7 @@ void *descomprimir_archivo_hilo(void *args) {
                 unicode_to_utf8(actual->value, utf8_char);
                 int utf8_len = strlen(utf8_char);
 
-                if (buffer_index + utf8_len < sizeof(output_buffer)) {
+                if (buffer_index + utf8_len < (int) sizeof(output_buffer)) {
                     memcpy(&output_buffer[buffer_index], utf8_char, utf8_len);
                     buffer_index += utf8_len;
                 } else {
