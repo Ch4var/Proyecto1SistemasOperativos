@@ -7,10 +7,6 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-# Actualiza los repositorios
-echo "Actualizando los repositorios..."
-dnf update -y
-
 # Instala gcc y make
 echo "Instalando gcc y make..."
 dnf install -y gcc make
