@@ -26,8 +26,14 @@ chmod +x gcc_install.sh
 *Una vez compilados los archivos, simplemente se ejecutan de la siguiente manera:
 
 ./compression 
+
 ./decompression
+
 ./compression_with_fork
+
 ./decompression_with_fork
+
 ./compression_with_threads
+
 ./decompression_with_threads
+
