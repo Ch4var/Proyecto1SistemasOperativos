@@ -20,8 +20,11 @@ Este proyecto consiste en la programación del algoritmo de Huffman en el lengua
 # Compilación:
 *Para poder ejecutar el código en el ambiente Fedora Worktstation 40 es necesario darle permisos al archivo llamado gcc\_install.sh, el cual es un script que se encarga de instalar la herramienta gcc, para compilar y ejecutar programas en c, y make, para compilar automáticamente los archivos del proyecto. Esto se logra abriendo una terminal donde se encuentra el proyecto y ejecutando el siguiente comando: 
 chmod +x gcc_install.sh
+
 *Este archivo primero actualizará los repositorios de Fedora, luego instalará gcc y make y por último compilará todos los programas. 
+
 *Una vez compilados los archivos, simplemente se ejecutan de la siguiente manera:
+
 ./compression 
 ./decompression
 ./compression_with_fork
