@@ -20,4 +20,17 @@ if command -v gcc >/dev/null 2>&1 && command -v make >/dev/null 2>&1; then
   echo "gcc y make se han instalado correctamente."
 else
   echo "Hubo un problema al instalar gcc y make."
+  exit 1
+fi
+
+# Usa el directorio actual
+PROYECTO_DIR=$(pwd)
+
+# Verifica si el directorio del proyecto contiene un Makefile
+if [ -f "$PROYECTO_DIR/Makefile" ]; then
+  echo "Ejecutando make en el directorio $PROYECTO_DIR..."
+  make
+else
+  echo "No se encontró un Makefile en el directorio actual ($PROYECTO_DIR). No se puede ejecutar make."
+  exit 1
 fi
