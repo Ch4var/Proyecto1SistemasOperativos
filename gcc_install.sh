@@ -2,7 +2,8 @@
 
 # Verifica si el script está siendo ejecutado como root
 if [ "$EUID" -ne 0 ]; then
-  echo "Por favor, ejecuta este script como root (usa sudo)"
+  echo "Este script necesita permisos de root, reiniciando con sudo..."
+  exec sudo "$0" "$@"  # Relanza el script con sudo
   exit 1
 fi
 
