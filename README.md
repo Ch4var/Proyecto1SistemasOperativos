@@ -13,8 +13,7 @@ Profesor:
 - [Descripción](#Descripción)
 - [Compilación](#Compilación)
 
-## Proyecto 1
 # Descripción:
 
 
-#Compilación
+# Compilación:
